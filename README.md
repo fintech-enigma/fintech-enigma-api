@@ -13,7 +13,7 @@ For webscraping brukes rammeverket [puppeteer](https://www.npmjs.com/package/pup
 1. Klon Git-repoet:
 
     ````
-    git clone https://github.com/fintech-enigma/fintech-enigma-web.git
+    git clone https://github.com/fintech-enigma/fintech-enigma-api.git
     ````
 
 2. Sørg for å ha [node.js](https://nodejs.org/en/) installert. 
