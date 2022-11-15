@@ -102,7 +102,7 @@ const DNscrape = async () => new Promise(async (resolve, reject) => {
 
             // Må få tak i en DB s.a vi kan skrive nåværende graf til DB. 
             // Kan da i tilfelle av en error hente ut den og vise. 
-            writeFileSync("./backupgraph.txt", svg);
+            // writeFileSync("./backupgraph.txt", svg);
             
             const data = { svg, CSS };
             

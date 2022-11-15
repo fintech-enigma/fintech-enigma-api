@@ -1,10 +1,16 @@
 const express = require('express');
 const cors = require('cors');
 const DNscrape = require('./modules/DNscrape');
-const PORT = process.env.PORT | 5000;
+const dotenv = require('dotenv');
+
+dotenv.config({path: './.env'});
+
+const PORT = process.env.PORT || 5050;
 
 const app = express();
 app.use(cors());
+
+app.use('/', express.static('./dist'));
 
 app.listen(PORT, e => e ? console.log(e) : console.log(`Server running on http://127.0.0.1:${PORT}`));
 
