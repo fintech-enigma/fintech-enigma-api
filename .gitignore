@@ -3,3 +3,5 @@
 backupgraph.txt
 
 *.env
+
+/modules/test.json
