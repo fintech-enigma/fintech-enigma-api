@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const updateFunds = require('./modules/FantacyFond.js')
+const updateFunds = require('./modules/FantacyFond.js');
+const updateFintechFantacy = require('./modules/Yahoo.js');
 const dotenv = require('dotenv');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 dotenv.config({path: './.env'});
@@ -35,7 +36,7 @@ const job = scedule.scheduleJob(rule, async () => {
         // Sjekker at det er en ukedag (man-fre) mellom kl. 09:00 og 17:00. 
         if(HOUR >= 9 && HOUR <= 16 && DAY >= 1 && DAY <= 5)
             // I produksjon tas med!
-            // await updateFunds();
+            // await updateFintechFantacy();
             console.log("Getting funds...");
     }
     catch(err){
@@ -46,7 +47,7 @@ const job = scedule.scheduleJob(rule, async () => {
 // GET request for å sende fondsdata til client
 app.get('/getFantacyFunds', async (req, res) => {
     try{
-        const dataset = await (await client.db('Cluster0').collection('FantacyFondDates').find({}).toArray()).sort(( a, b ) => a.date - b.date);
+        const dataset = await (await client.db('Cluster0').collection('FintechFantacy').find({}).toArray()).sort(( a, b ) => a.date - b.date);
         res.send({status: "OK", dataset});
     }
     catch(err){
