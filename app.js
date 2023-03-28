@@ -102,7 +102,7 @@ app.get('/getNordnetFunds', async (req, res) => {
     try{
         const data = await getNordnetFond();
         const labels = data.map(e => e.date);
-        const dataset = data.map(e => e.value/100);
+        const dataset = data.map(e => (100 - e.value)/e.value);
         res.send({status: "OK", data, labels, dataset});
     }
     catch(error){
