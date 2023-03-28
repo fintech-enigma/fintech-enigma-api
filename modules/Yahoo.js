@@ -1,6 +1,9 @@
 const fetch = require('node-fetch');
 const { MongoClient } = require('mongodb');
 
+const DAYS = "Mandag,Tirsdag,Onsdag,Torsdag,Fredag".split(",");
+const MONTHS = "Januar,Februar,Mars,April,Mai,Juni,Juli,August,September,Oktober,November,Desember".split(",");
+
 /**
  * @param {string} ticker 
  * @returns {Promise<{price: string} | PromiseRejectedResult>}
