@@ -15,8 +15,7 @@ app.use(bodyParser.urlencoded({extended: false})); // Endre til ture hvis bruk a
 app.use(bodyParser.json())
 app.use('/', express.static('./dist'));
 
-const PWD = process.env.PWD;
-const uri = process.env.API_KEY.replace(/\<(.*?)\>/, PWD);
+const uri = process.env.API_KEY;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 const PORT = process.env.PORT || 5050;
