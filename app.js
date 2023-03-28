@@ -101,7 +101,9 @@ app.post('/KontaktFintechEnigma', async (req, res) => {
 app.get('/getNordnetFunds', async (req, res) => {
     try{
         const data = await getNordnetFond();
-        res.send({status: "OK", data});
+        const labels = data.map(e => e.date);
+        const dataset = data.map(e => e.value/100);
+        res.send({status: "OK", data, labels, dataset});
     }
     catch(error){
         res.send({status: "Kunne ikke hente data, vennligst oppdater siden."})
