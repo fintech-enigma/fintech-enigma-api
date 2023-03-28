@@ -1,8 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const updateFunds = require('./modules/FantacyFond.js');
-const updateFintechFantacy = require('./modules/Yahoo.js');
+// const updateFunds = require('./modules/FantacyFond.js');
+// const updateFintechFantacy = require('./modules/Yahoo.js');
+const getNordnetFond = require('./modules/Shareville');
 const dotenv = require('dotenv');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const sgMail = require('@sendgrid/mail');
@@ -94,5 +95,15 @@ app.post('/KontaktFintechEnigma', async (req, res) => {
     catch(error){
         console.log(error);
         res.send({status: "Det oppsto en feil, vennligst oppdater siden og prøv på nytt."});
+    }
+})
+
+app.get('/getNordnetFunds', async (req, res) => {
+    try{
+        const data = await getNordnetFond();
+        res.send({status: "OK", data});
+    }
+    catch(error){
+        res.send({status: "Kunne ikke hente data, vennligst oppdater siden."})
     }
 })
