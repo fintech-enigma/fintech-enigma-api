@@ -9,6 +9,7 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const sgMail = require('@sendgrid/mail');
 dotenv.config({path: './.env'});
 const scedule = require('node-schedule');
+const bcrypt = require('bcrypt');
 
 const app = express();
 app.use(cors());
@@ -102,7 +103,7 @@ app.get('/getNordnetFunds', async (req, res) => {
     try{
         const data = await getNordnetFond();
         const labels = data.map(e => e.date);
-        const dataset = data.map(e => (100 - e.value)/e.value);
+        const dataset = data.map(e => +(((e.value - 100)/100) * 100).toFixed(2));
         res.send({status: "OK", data, labels, dataset});
     }
     catch(error){
