@@ -1,8 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-// const updateFunds = require('./modules/FantacyFond.js');
-// const updateFintechFantacy = require('./modules/Yahoo.js');
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
+const { readFileSync } = require('fs');
 const getNordnetFond = require('./modules/Shareville');
 const dotenv = require('dotenv');
 const { MongoClient, ServerApiVersion } = require('mongodb');
@@ -11,10 +12,15 @@ dotenv.config({path: './.env'});
 const scedule = require('node-schedule');
 const bcrypt = require('bcrypt');
 
+const loginHTML = require('./modules/loginhtml');
+const adminHTML = readFileSync('./modules/adminHTML.html', 'utf8');
+
 const app = express();
 app.use(cors());
+app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: false})); // Endre til ture hvis bruk av cookie-parser
-app.use(bodyParser.json())
+app.use(bodyParser.json());
+app.use(session({secret: process.env.SECRET, saveUninitialized: false, resave: false}));
 app.use('/', express.static('./dist'));
 
 const uri = process.env.API_KEY;
@@ -56,6 +62,53 @@ const job = scedule.scheduleJob(rule, async () => {
 });
 */
 
+app.get('/signin/key/:key', (req, res) => {
+    const key = req.params.key;
+    if(key === process.env.ADMIN_KEY){
+        res.send(loginHTML);
+    }
+    else{
+        res.redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley');
+    }
+});
+
+app.post('/signinAdmin', async (req, res) => {
+    const { username, password } = req.body;
+    try{
+        if(username !== process.env.ADMIN_UNAME){
+            res.send({status: "User doesn't exist"});
+            return;
+        }
+
+        const pwdOK = await bcrypt.compare(password, process.env.ADMIN_PWD);
+
+
+        if(await pwdOK){
+            req.session.admin_user = {
+                username, key: process.env.ADMIN_KEY
+            }
+            res.redirect('/adminpage');
+        }
+        else{
+            res.redirect('/');
+        }
+    }catch(error){
+        res.send({status: "En feil har oppstått"})
+    }
+});
+
+app.get('/adminpage', (req, res) => {
+    if(!req.session.admin_user){
+        res.redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley');
+        return;
+    }
+    else if (req.session.admin_user.username === process.env.ADMIN_UNAME && req.session.admin_user.key === process.env.ADMIN_KEY){
+        res.send(adminHTML);
+        return;
+    }
+
+})
+
 // GET request for å sende fondsdata til client
 app.get('/getFantacyFunds', async (req, res) => {
     try{
@@ -85,7 +138,27 @@ app.post('/KontaktFintechEnigma', async (req, res) => {
             `,
           }
           sgMail.send(msg)
-          .then(() => console.log("Mail Sendt"))
+          .then(() => console.log("Mail sendt to fintech enigma"))
+          .catch(err => {
+            const error = new ErrorEvent(err);
+            throw error;
+          });
+
+          const senderMsg = {
+            to: epost, // Change to your recipient
+            from: 'fintechenigma@gmail.com', // Change to your verified sender
+            subject: `Takk for at du tok kontakt`,
+            html: `
+                <strong>Hei ${navn}</strong>
+                <p>Takk for at du tok kontakt med Fintech Enigma. Vi svarer deg så snart vi kan.</p>
+                <br>
+                <p>Med vennlig hilsen</p>
+                <p>Styret i Fintech Enigma</p>
+                <p> <a href="https://www.fintechenigma.no/" >fintechenigma.no</a> </p>
+            `,
+          }
+          sgMail.send(senderMsg)
+          .then(() => console.log("Mail sendt to sender"))
           .catch(err => {
             const error = new ErrorEvent(err);
             throw error;
