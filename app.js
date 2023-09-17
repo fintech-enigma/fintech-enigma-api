@@ -11,8 +11,10 @@ const sgMail = require('@sendgrid/mail');
 dotenv.config({path: './.env'});
 const scedule = require('node-schedule');
 const bcrypt = require('bcrypt');
+const fetch = require('node-fetch');
 
 const loginHTML = require('./modules/loginhtml');
+const updateFunds = require('./modules/FantacyFond');
 const adminHTML = readFileSync('./modules/adminHTML.html', 'utf8');
 
 const app = express();
@@ -38,8 +40,6 @@ client.connect()
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // Henter data fra DN fantacy fond hvert 15-ene minutt
-/** Dette skal med i produksjon når det er nytt Fantacy fond konkuranse.
- * Skal også lage en egen liknende funksjon for å hente data fra shareville. 
 const rule = new scedule.RecurrenceRule();
 rule.minute = new scedule.Range(0,59, 15);
 const job = scedule.scheduleJob(rule, async () => {
@@ -50,17 +50,19 @@ const job = scedule.scheduleJob(rule, async () => {
         const DATE = new Date(dateData.dateTime);
         const HOUR = DATE.getHours();
         const DAY = DATE.getDay();
+        console.log(DAY);
+        console.log(DATE);
         // Sjekker at det er en ukedag (man-fre) mellom kl. 09:00 og 17:00. 
-        if(HOUR >= 9 && HOUR <= 16 && DAY >= 1 && DAY <= 5)
+        if(HOUR >= 9 && HOUR <= 16 && DAY >= 1 && DAY <= 5){
             // I produksjon tas med!
-            // await updateFintechFantacy(client);
+            await updateFunds(client);
             console.log("Getting funds...");
+        }
     }
     catch(err){
         console.log(err);
     }
 });
-*/
 
 app.get('/signin/key/:key', (req, res) => {
     const key = req.params.key;
@@ -112,14 +114,35 @@ app.get('/adminpage', (req, res) => {
 // GET request for å sende fondsdata til client
 app.get('/getFantacyFunds', async (req, res) => {
     try{
-        const dataset = await (await client.db('Cluster0').collection('FintechFantacy').find({}).toArray()).sort(( a, b ) => a.date - b.date);
-        res.send({status: "OK", dataset});
+        const dataset = await (await client.db('Cluster0').collection('ITOK_fantacy_konk23').find({}).toArray());
+        const fundsDataset = {};
+        for(let i=0; i<dataset.length; ++i){
+            const data = dataset[i];
+            if (fundsDataset[data.name]){
+                fundsDataset[data.name].push(data);
+            }
+            else{
+                fundsDataset[data.name] = [data];
+            }
+        }
+
+        const keys = Object.keys(fundsDataset);
+
+        for(const key of keys){
+            fundsDataset[key] = fundsDataset[key].sort( (a, b) => b.date - a.date );
+        }
+        res.send({status: "OK", fundsDataset});
     }
     catch(err){
         res.send({status: "Klarte ikke hente dataset, vennligst oppdater siden."});
         console.log(err);
     }
 });
+
+app.get('/newSession', async (req, res) => {
+    console.log("Ny besøkende!");
+    res.send({status: "OK"})
+})
 
 // Kontakte oss via forum på nettsiden.
 app.post('/KontaktFintechEnigma', async (req, res) => {
