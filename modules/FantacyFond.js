@@ -4,11 +4,10 @@
 const { MongoClient } = require('mongodb');
 const fetch = require('node-fetch');
 
-const ID = 971;
+const ID = 1091;
 const URL = `https://investor.dn.no/FantasyFunds/LeagueFundList?leagueId=${ID}`;
-const FUND = "Fintech Enigma";
 
-const DAYS = "Mandag,Tirsdag,Onsdag,Torsdag,Fredag".split(",");
+const DAYS = "Søndag,Mandag,Tirsdag,Onsdag,Torsdag,Fredag,Lørdag".split(",");
 const MONTHS = "Januar,Februar,Mars,April,Mai,Juni,Juli,August,September,Oktober,November,Desember".split(",");
 
 /**
@@ -33,7 +32,7 @@ const updateFunds = async client => new Promise(async (resolve, reject) => {
 
         if(MINUTE === 0) MINUTE = "00";
 
-        const dateStr = `${DAYS[DAY-1]} ${DATE}. ${MONTHS[MONTH]} ${YEAR}, kl. ${HOUR}:${MINUTE}`;
+        const dateStr = `${DAYS[DAY]} ${DATE}. ${MONTHS[MONTH]} ${YEAR}, kl. ${HOUR}:${MINUTE}`;
     
         const get = await fetch(URL);
         const text = String(await get.text());
@@ -41,19 +40,27 @@ const updateFunds = async client => new Promise(async (resolve, reject) => {
         newTxt.shift();
         const fixedText = newTxt.join("");
     
-        const data = JSON.parse(fixedText);
-        const [ fundID ] = data.result.funds.find(fund => fund.includes(FUND));
+        const data = JSON.parse(fixedText).result;
 
-        console.log(`Henter data fra fond:${fundID}`);
-    
-        const returnNow = data.result.ress[fundID];
+        const dataset = [];
+        for(let i=0; i<data.funds.length; ++i){
+            const f = data.funds[i];
+            dataset.push({
+                time: dateStr, 
+                price: f[3], 
+                date: DATEObj,
+                name: f[4]
+            })
+        }
 
-        await client.db('Cluster0').collection('FantacyFondDates').insertOne({time: dateStr, price: returnNow, date: DATEObj});
+        console.log(`Henter data fra Liga:${ID}`);
+
+        await client.db('Cluster0').collection('ITOK_fantacy_konk23').insertMany(dataset);
         await resolve(true);
     }
     catch(err){
         reject(err);
     }
-})
+});
 
 module.exports = updateFunds;
