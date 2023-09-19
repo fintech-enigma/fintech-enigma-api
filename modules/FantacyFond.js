@@ -5,7 +5,7 @@ const { MongoClient } = require('mongodb');
 const fetch = require('node-fetch');
 
 const ID = 1091;
-const URL = `https://investor.dn.no/FantasyFunds/LeagueFundList?leagueId=${ID}`;
+const URL = `https://dnpulse-fantasy6-prod.azurewebsites.net/FantasyFunds/LeagueFundList?leagueId=${ID}`;
 
 const DAYS = "Søndag,Mandag,Tirsdag,Onsdag,Torsdag,Fredag,Lørdag".split(",");
 const MONTHS = "Januar,Februar,Mars,April,Mai,Juni,Juli,August,September,Oktober,November,Desember".split(",");
@@ -35,12 +35,7 @@ const updateFunds = async client => new Promise(async (resolve, reject) => {
         const dateStr = `${DAYS[DAY]} ${DATE}. ${MONTHS[MONTH]} ${YEAR}, kl. ${HOUR}:${MINUTE}`;
     
         const get = await fetch(URL);
-        const text = String(await get.text());
-        const newTxt = text.split("");
-        newTxt.shift();
-        const fixedText = newTxt.join("");
-    
-        const data = JSON.parse(fixedText).result;
+        const data = (await get.json()).result;
 
         const dataset = [];
         for(let i=0; i<data.funds.length; ++i){
