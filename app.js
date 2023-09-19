@@ -39,9 +39,9 @@ client.connect()
 // Koble til SendGrid Epost API.
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-// Henter data fra DN fantacy fond hvert 15-ene minutt
+// Henter data fra DN fantacy fond hvert 30-ene minutt
 const rule = new scedule.RecurrenceRule();
-rule.minute = new scedule.Range(0,59, 15);
+rule.minute = new scedule.Range(0,59, 30);
 const job = scedule.scheduleJob(rule, async () => {
     try{
         // Siden server kan være plassert i annen tidssone bruker vi dato API.
@@ -53,11 +53,11 @@ const job = scedule.scheduleJob(rule, async () => {
         console.log(DAY);
         console.log(DATE);
         // Sjekker at det er en ukedag (man-fre) mellom kl. 09:00 og 17:00. 
-        if(HOUR >= 9 && HOUR <= 16 && DAY >= 1 && DAY <= 5){
+        // if(HOUR >= 9 && HOUR <= 16 && DAY >= 1 && DAY <= 5){
             // I produksjon tas med!
             await updateFunds(client);
             console.log("Getting funds...");
-        }
+        // }
     }
     catch(err){
         console.log(err);

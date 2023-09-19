@@ -40,9 +40,10 @@ const updateFunds = async client => new Promise(async (resolve, reject) => {
         const dataset = [];
         for(let i=0; i<data.funds.length; ++i){
             const f = data.funds[i];
+            const key = f[0];
             dataset.push({
                 time: dateStr, 
-                price: f[3], 
+                price: data.ress[key], 
                 date: DATEObj,
                 name: f[4]
             })
