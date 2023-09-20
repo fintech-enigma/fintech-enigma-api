@@ -53,11 +53,11 @@ const job = scedule.scheduleJob(rule, async () => {
         console.log(DAY);
         console.log(DATE);
         // Sjekker at det er en ukedag (man-fre) mellom kl. 09:00 og 17:00. 
-        // if(HOUR >= 9 && HOUR <= 16 && DAY >= 1 && DAY <= 5){
+        if(HOUR >= 9 && HOUR <= 16 && DAY >= 1 && DAY <= 5){
             // I produksjon tas med!
             await updateFunds(client);
             console.log("Getting funds...");
-        // }
+         }
     }
     catch(err){
         console.log(err);
