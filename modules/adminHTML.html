@@ -9,7 +9,71 @@
 </head>
 <body>
 
-    <div id="app"></div>
+    <div id="app">
+
+        <h2 id="avkast">Avkastning: </h2>
+
+        <div class="container mt-5">
+            <h1>Portefølje</h1>
+            <button class="btn btn-primary" id="addStockBtn">Add Stock</button>
+            <table class="table table-bordered mt-3">
+              <thead>
+                <tr>
+                  <th>Aksje</th>
+                  <th>Kjøpspris</th>
+                  <th>Antall</th>
+                  <th>Andel</th>
+                  <th>Kjøpsdato</th>
+                  <th>Selg</th>
+                </tr>
+              </thead>
+              <tbody id="stockTableBody">
+                <!-- Stock data will be inserted here dynamically -->
+              </tbody>
+            </table>
+          </div>
+        
+          <div class="modal fade" id="addStockModal" tabindex="-1" role="dialog" aria-labelledby="addStockModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="addStockModalLabel">Add Stock</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <form id="addStockForm">
+                    <div class="form-group">
+                      <label for="stockName">Stock</label>
+                      <input type="text" class="form-control" id="stockName" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="buyPrice">Buy Price</label>
+                      <input type="number" class="form-control" id="buyPrice" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="quantity">Quantity</label>
+                      <input type="number" class="form-control" id="quantity" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="buyDate">Buy Date</label>
+                      <input type="date" class="form-control" id="buyDate" required>
+                    </div>
+                  </form>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  <button type="button" class="btn btn-primary" id="saveStock">Save</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        
+          <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+          <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+          <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    </div>
 
     <script src="/admin/main.js"></script>
 </body>
