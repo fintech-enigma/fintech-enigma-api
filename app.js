@@ -109,7 +109,54 @@ app.get('/adminpage', (req, res) => {
         return;
     }
 
+});
+
+app.get('/getPortefolje', async (req, res) => {
+    try {
+        const portefoljeData = (await client.db('Cluster0').collection('Portefolje').find({}).toArray());
+        const FondetsVerdi = 4000*((await getNordnetFond()).pop().value)/100;
+        res.send({status: "OK", portefoljeData, FondetsVerdi})
+    }
+    catch(err){
+        res.send({status: "Klarte ikke hente dataset, vennligst oppdater siden."});
+        console.log(err)
+    }
+});
+
+app.post('/saveNewStock', async (req, res) => {
+    try{
+        const { stockName, buyPrice, quantity, buyDate } = req.body;
+        const andel = buyPrice*quantity;
+    
+        await client.db('Cluster0').collection('Portefolje').insertOne({
+            aksje: stockName,
+            kostpris: buyPrice,
+            andel,
+            antall_aksjer: quantity,
+            dato: new Date(buyDate)
+        })
+        res.send({status: "OK"})
+    }
+    catch(err){
+        res.send({status: "Klarte ikke lagre aksjekjøp, vennligst oppdater siden."});
+        console.log(er)
+    }
+});
+
+app.get('/delteStock/:stock', async (req, res) => {
+    try{
+        const akjse = req.params.stock;
+
+        await client.db('Cluster0').collection('Portefolje').deleteOne({aksje: akjse});
+    
+        res.send({status: "OK"});
+    }
+    catch(err){
+        res.send({status: "Klarte ikke slette aksjekjøp, vennligst oppdater siden."});
+        console.log(err);
+    }
 })
+
 
 // GET request for å sende fondsdata til client
 app.get('/getFantacyFunds', async (req, res) => {
