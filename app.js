@@ -57,7 +57,7 @@ const job = scedule.scheduleJob(rule, async () => {
             // I produksjon tas med!
             await updateFunds(client);
             console.log("Getting funds...");
-         }
+        }
     }
     catch(err){
         console.log(err);
