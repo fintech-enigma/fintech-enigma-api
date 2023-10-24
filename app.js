@@ -111,11 +111,25 @@ app.get('/adminpage', (req, res) => {
 
 });
 
+const UpdatePortefolje = async (portefoljeData) => {
+    const nyPortefoljeData = await Promise.all(portefoljeData.map(async (stock, i) => {
+        const getPriceToday = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${stock.tickerName}.OL?region=US&lang=en-US&includePrePost=false&interval=2m&useYfid=true&range=1d&corsDomain=finance.yahoo.com&.tsrc=finance`);
+        const resPriceToday = await getPriceToday.json();
+        if (resPriceToday.chart.result) {
+            stock["PriceToday"] = resPriceToday.chart.result[0].meta.chartPreviousClose;
+        }
+        return stock;
+    }));
+    return nyPortefoljeData;
+};
+
 app.get('/getPortefolje', async (req, res) => {
     try {
         const portefoljeData = (await client.db('Cluster0').collection('Portefolje').find({}).toArray());
         const FondetsVerdi = 4000*((await getNordnetFond()).pop().value)/100;
-        res.send({status: "OK", portefoljeData, FondetsVerdi})
+        const nyPortefoljeData = await UpdatePortefolje(portefoljeData);
+
+        res.send({status: "OK", portefoljeData: nyPortefoljeData, FondetsVerdi})
     }
     catch(err){
         res.send({status: "Klarte ikke hente dataset, vennligst oppdater siden."});
@@ -125,11 +139,18 @@ app.get('/getPortefolje', async (req, res) => {
 
 app.post('/saveNewStock', async (req, res) => {
     try{
-        const { stockName, buyPrice, quantity, buyDate } = req.body;
+        if(!req.session.admin_user){
+            res.send({status: "Du er ikke admin!"});
+            return;
+        }
+        const { stockName, tickerName, buyPrice, quantity, buyDate } = req.body;
         const andel = buyPrice*quantity;
+
+        console.log(stockName, tickerName, buyPrice, quantity, buyDate)
     
         await client.db('Cluster0').collection('Portefolje').insertOne({
             aksje: stockName,
+            tickerName,
             kostpris: buyPrice,
             andel,
             antall_aksjer: quantity,
@@ -145,6 +166,10 @@ app.post('/saveNewStock', async (req, res) => {
 
 app.get('/delteStock/:stock', async (req, res) => {
     try{
+        if(!req.session.admin_user){
+            res.send({status: "Du er ikke admin!"});
+            return;
+        }
         const akjse = req.params.stock;
 
         await client.db('Cluster0').collection('Portefolje').deleteOne({aksje: akjse});
