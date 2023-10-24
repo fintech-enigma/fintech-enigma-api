@@ -14,6 +14,7 @@ const getPortefolje = async () => {
     res.portefoljeData.forEach(e => {
         parsed.push({
             stockName: e.aksje,
+            tickerName: e.tickerName,
             buyPrice: e.kostpris,
             quantity: e.antall_aksjer,
             buyDate: e.dato
@@ -38,6 +39,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       stocks.forEach((stock, index) => {
         const row = `<tr>
           <td>${stock.stockName}</td>
+          <td>${stock.tickerName}</td>
           <td>${stock.buyPrice}</td>
           <td>${stock.quantity}</td>
           <td>${(stock.buyPrice * stock.quantity).toFixed(2)}</td>
@@ -60,17 +62,18 @@ document.addEventListener('DOMContentLoaded', async function () {
     const saveStockBtn = document.getElementById('saveStock');
     saveStockBtn.addEventListener('click', async function () {
       const stockName = document.getElementById('stockName').value;
+      const tickerName = document.getElementById('tickerName').value;
       const buyPrice = parseFloat(document.getElementById('buyPrice').value);
       const quantity = parseInt(document.getElementById('quantity').value);
       const buyDate = document.getElementById('buyDate').value;
   
       if (stockName && !isNaN(buyPrice) && !isNaN(quantity) && buyDate) {
-        const newStock = { stockName, buyPrice, quantity, buyDate };
+        const newStock = { stockName, tickerName, buyPrice, quantity, buyDate };
         stocks.push(newStock);
         const sendNewStock = await fetch('/saveNewStock', {
             method: "POST",
                     credentials: "include",
-                    body: JSON.stringify({ stockName, buyPrice, quantity, buyDate }),
+                    body: JSON.stringify({ stockName, tickerName, buyPrice, quantity, buyDate }),
                     headers: {
                         "Content-Type": "application/json"
                     }
