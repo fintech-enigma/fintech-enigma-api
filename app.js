@@ -12,6 +12,7 @@ dotenv.config({path: './.env'});
 const scedule = require('node-schedule');
 const bcrypt = require('bcrypt');
 const fetch = require('node-fetch');
+const ExecRunner = require('./modules/ExecRunner');
 
 const loginHTML = require('./modules/loginhtml');
 const updateFunds = require('./modules/FantacyFond');
@@ -126,7 +127,7 @@ const UpdatePortefolje = async (portefoljeData) => {
 app.get('/getPortefolje', async (req, res) => {
     try {
         const portefoljeData = (await client.db('Cluster0').collection('Portefolje').find({}).toArray());
-        const FondetsVerdi = 4000*((await getNordnetFond()).pop().value)/100;
+        const FondetsVerdi = Number(process.env.INNSKUDD)*((await getNordnetFond()).pop().value)/100;
         const nyPortefoljeData = await UpdatePortefolje(portefoljeData);
 
         res.send({status: "OK", portefoljeData: nyPortefoljeData, FondetsVerdi})
@@ -277,4 +278,41 @@ app.get('/getNordnetFunds', async (req, res) => {
     catch(error){
         res.send({status: "Kunne ikke hente data, vennligst oppdater siden."})
     }
-})
+});
+
+app.post('/analyse', async (req, res) => {
+    const { ticker, time_slot, type, index } = req.body;
+
+    var exeFile = "default.py";
+
+    switch(type){
+        case "VLT":
+            exeFile = "vlt.py";
+            break;
+        case "Sharpe":
+            exeFile = "sharpe.py";
+            break;
+        case "Boxplot":
+            exeFile = "boxplot.py";
+            break;
+        case "Corr":
+            exeFile = "corr.py";
+            break;
+        case "Calmars":
+            exeFile = "calmars.py";
+            break;
+        case "Chi":
+            exeFile = "chi.py";
+            break;
+    }
+
+    try{
+        const data = (await ExecRunner(exeFile, [ticker, time_slot, index])).replaceAll(/\[.*?(\d+)%.*\]  (\d+) of (\d+) completed/gm, "").replaceAll(/\r/gm, "");
+        res.send({status: "OK", data});
+    }
+    catch(err){
+        console.log(err);
+        res.send({status: "Ingenting å se her"});
+    }
+});
+
