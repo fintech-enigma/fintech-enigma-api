@@ -315,3 +315,4 @@ app.post('/analyse', async (req, res) => {
         res.send({status: "Ingenting å se her"});
     }
 });
+
