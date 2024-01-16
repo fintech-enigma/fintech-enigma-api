@@ -11,7 +11,7 @@ const ExecRunner = (file, args) => new Promise((resolve, reject) => {
         const promt = `python3 ./python/${file} ${args.filter(e => e !== undefined).join(" ")}`;
 
         exec(promt, (error, stdout, stderr) => {
-            if (error) throw error;
+            if (error) reject(error);
             resolve(stdout);
             return;
             
