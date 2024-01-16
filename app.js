@@ -271,7 +271,6 @@ app.get('/getNordnetFunds', async (req, res) => {
 
 app.post('/analyse', async (req, res) => {
     const { ticker, time_slot, index } = req.body;
-
     const exeFiles = "Norm.py, Vlt.py, VaR.py, Corr.py, Risk-Vlt.py".split(", ");
 
     const data = {};
@@ -281,7 +280,7 @@ app.post('/analyse', async (req, res) => {
             const args = [ticker, time_slot]
             if (exeFile === "Corr") args.push(index);
             const res = (await ExecRunner(exeFile, args));
-            data[exeFile.replace(/\.py$/, "")] = res;
+            data[exeFile.replace(/\.py$/, "")] = res //.replaceAll(/\[.*?(\d+)%.*\]  (\d+) of (\d+) completed/gm, "").replaceAll(/\r/gm, "");;
             return {exeFile, data: res};
         }
         catch(error){
