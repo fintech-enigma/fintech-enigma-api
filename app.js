@@ -13,6 +13,7 @@ const scedule = require('node-schedule');
 const bcrypt = require('bcrypt');
 const fetch = require('node-fetch');
 const ExecRunner = require('./modules/ExecRunner');
+const UpdatePortefolje = require('./modules/StockPrices');
 
 const loginHTML = require('./modules/loginhtml');
 const updateFunds = require('./modules/FantacyFond');
@@ -111,18 +112,6 @@ app.get('/adminpage', (req, res) => {
     }
 
 });
-
-const UpdatePortefolje = async (portefoljeData) => {
-    const nyPortefoljeData = await Promise.all(portefoljeData.map(async (stock, i) => {
-        const getPriceToday = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${stock.tickerName}.OL?region=US&lang=en-US&includePrePost=false&interval=2m&useYfid=true&range=1d&corsDomain=finance.yahoo.com&.tsrc=finance`);
-        const resPriceToday = await getPriceToday.json();
-        if (resPriceToday.chart.result) {
-            stock["PriceToday"] = resPriceToday.chart.result[0].meta.chartPreviousClose;
-        }
-        return stock;
-    }));
-    return nyPortefoljeData;
-};
 
 app.get('/getPortefolje', async (req, res) => {
     try {
@@ -281,37 +270,26 @@ app.get('/getNordnetFunds', async (req, res) => {
 });
 
 app.post('/analyse', async (req, res) => {
-    const { ticker, time_slot, type, index } = req.body;
+    const { ticker, time_slot, index } = req.body;
 
-    var exeFile = "default.py";
+    const exeFiles = "Norm.py, Vlt.py, VaR.py, Corr.py, Risk-Vlt.py".split(", ");
 
-    switch(type){
-        case "VLT":
-            exeFile = "vlt.py";
-            break;
-        case "Sharpe":
-            exeFile = "sharpe.py";
-            break;
-        case "Boxplot":
-            exeFile = "boxplot.py";
-            break;
-        case "Corr":
-            exeFile = "corr.py";
-            break;
-        case "Calmars":
-            exeFile = "calmars.py";
-            break;
-        case "Chi":
-            exeFile = "chi.py";
-            break;
-    }
+    const data = {};
 
-    try{
-        const data = (await ExecRunner(exeFile, [ticker, time_slot, index])).replaceAll(/\[.*?(\d+)%.*\]  (\d+) of (\d+) completed/gm, "").replaceAll(/\r/gm, "");
-        res.send({status: "OK", data});
-    }
-    catch(err){
-        console.log(err);
-        res.send({status: "Ingenting å se her"});
-    }
+    await Promise.all(exeFiles.map(async exeFile => {
+        try{
+            const args = [ticker, time_slot]
+            if (exeFile === "Corr") args.push(index);
+            const res = (await ExecRunner(exeFile, args));
+            data[exeFile.replace(/\.py$/, "")] = res;
+            return {exeFile, data: res};
+        }
+        catch(error){
+            res.send({status: "Noe gikk galt, vennligst oppdater siden. Ta kontakt om feilen vedvarer."});
+            console.log(error);
+            return;
+        }
+    }));
+
+    res.send({status: "OK", data});
 });
