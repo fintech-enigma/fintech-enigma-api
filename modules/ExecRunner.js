@@ -8,7 +8,7 @@ const { exec } = require('child_process');
 const ExecRunner = (file, args) => new Promise((resolve, reject) => {
     try{
 
-        const promt = `python3 ./python/${file} ${args.filter(e => e !== undefined).join(" ")}`;
+        const promt = `python3 ./python/${file}.py ${args.filter(e => e !== undefined).join(" ")}`;
 
         exec(promt, (error, stdout, stderr) => {
             if (error) reject(error);

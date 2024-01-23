@@ -14,6 +14,7 @@ const bcrypt = require('bcrypt');
 const fetch = require('node-fetch');
 const ExecRunner = require('./modules/ExecRunner');
 const UpdatePortefolje = require('./modules/StockPrices');
+const { pasrePythonGraph } = require('./modules/parsePython');
 
 const loginHTML = require('./modules/loginhtml');
 const updateFunds = require('./modules/FantacyFond');
@@ -271,24 +272,29 @@ app.get('/getNordnetFunds', async (req, res) => {
 
 app.post('/analyse', async (req, res) => {
     const { ticker, time_slot, index } = req.body;
-    const exeFiles = "Norm.py, Vlt.py, VaR.py, Corr.py, Risk-Vlt.py".split(", ");
+
+    const exeFiles = "Norm, Vlt, VaR, Corr, Risk-Vlt".split(", ");
 
     const data = {};
 
-    await Promise.all(exeFiles.map(async exeFile => {
-        try{
-            const args = [ticker, time_slot]
-            if (exeFile === "Corr") args.push(index);
-            const res = (await ExecRunner(exeFile, args));
-            data[exeFile.replace(/\.py$/, "")] = res //.replaceAll(/\[.*?(\d+)%.*\]  (\d+) of (\d+) completed/gm, "").replaceAll(/\r/gm, "");;
-            return {exeFile, data: res};
-        }
-        catch(error){
-            res.send({status: "Noe gikk galt, vennligst oppdater siden. Ta kontakt om feilen vedvarer."});
-            console.log(error);
-            return;
-        }
-    }));
+    try{
+        await Promise.all(exeFiles.map(async exeFile => {
+                const args = [ticker, time_slot]
+                if (exeFile === "Corr") args.push(index);
+                const res = (await ExecRunner(exeFile, args));
+                if (exeFile === "Vlt"){
+                    data[exeFile] = await pasrePythonGraph(res);
+                }
+                
+                return {exeFile, data: res};
+        }));
+    }
+    catch(error){
+        res.send({status: "Noe gikk galt, vennligst oppdater siden. Ta kontakt om feilen vedvarer."});
+        console.log(error);
+        return;
+    };
+
 
     res.send({status: "OK", data});
 });
