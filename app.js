@@ -14,11 +14,12 @@ const bcrypt = require('bcrypt');
 const fetch = require('node-fetch');
 const ExecRunner = require('./modules/ExecRunner');
 const UpdatePortefolje = require('./modules/StockPrices');
-const { pasrePythonGraph } = require('./modules/parsePython');
+const { pasrePythonGraph, makeTicker } = require('./modules/analyse');
 
 const loginHTML = require('./modules/loginhtml');
 const updateFunds = require('./modules/FantacyFond');
 const adminHTML = readFileSync('./modules/adminHTML.html', 'utf8');
+const norsketickers = require('./modules/norsketickers.json');
 
 const app = express();
 app.use(cors());
@@ -278,15 +279,51 @@ app.post('/analyse', async (req, res) => {
     const data = {};
 
     try{
+        const sikkerTicker = await makeTicker(norsketickers, ticker);
         await Promise.all(exeFiles.map(async exeFile => {
-                const args = [ticker, time_slot]
-                if (exeFile === "Corr") args.push(index);
-                const res = (await ExecRunner(exeFile, args));
-                if (exeFile === "Vlt"){
-                    data[exeFile] = await pasrePythonGraph(res);
+                try{
+                    const args = [ sikkerTicker, time_slot ];
+                    if (exeFile === "Corr") args.push(index);
+                    const res = (await ExecRunner(exeFile, args));
+                    if (exeFile === "Vlt" || exeFile === "Norm"){
+                        const xy = await pasrePythonGraph(res, time_slot);
+                        data[exeFile] = await xy;
+                    }
+                    else if(exeFile === "Corr"){
+                        data[exeFile] = +res.replace(/\[.*?\]\s*\d+\s*of\s*\d+\s*(completed|\d+\s*of\s*\d+)/gm, "").replace(/[\r\t\n\v\f]/gm, '');
+                    }
+                    else if(exeFile === "VaR"){
+                        const svg = res.match(/<svg(?:[^>]+)?>([\s\S]*?)<\/svg>/gm) ||  [`<h3>${time_slot} Value at risk: ${res.match(/<valueatrisk>([-\d.]+)<\/valueatrisk>/)[0]}</h3>`];
+                        data[exeFile] = svg[0];
+                    }
+                    else if(exeFile === "Risk-Vlt"){
+                        data[exeFile] = res.replace(/\[.*?\]\s*\d+\s*of\s*\d+\s*(completed|\d+\s*of\s*\d+)/gm, "");
+
+                        const regex = /\{(?:\s*'(\w+)'\s*:\s*(-?\d+(\.\d+)?)\s*,?)+\}/gm;
+
+                        const matches = data[exeFile].match(regex);
+
+                        data[exeFile] = matches.map(match => {
+                            const keyValuePairs = match.match(/'(\w+)'\s*:\s*(-?\d+(\.\d+)?)\s*/g);
+                            const obj = {};
+                            keyValuePairs.forEach(pair => {
+                                const [key, value] = pair.split(':').map(s => s.trim().replace(/'/g, ''));
+                                obj[key] = parseFloat(value);
+                            });
+                            return obj;
+                        })[0];
+                    }
+                    
+                    return {exeFile, data: res};
                 }
-                
-                return {exeFile, data: res};
+                catch(err){
+                    console.log(err);
+                    console.log(exeFile);
+                    if(exeFile === "Vlt" || exeFile === "Norm") data[exeFile] = {x: [], y: []};
+                    else if(exeFile === "Risk-Vlt") data[exeFile] = { dev: 0, ret: 0 };
+                    else if(exeFile === "VaR") data[exeFile] = "<h3>Kunne ikke hente Value at Risk</h3>";
+                    else if(exeFile === "Corr") data[exeFile] = 0;
+                }
         }));
     }
     catch(error){

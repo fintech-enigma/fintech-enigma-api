@@ -8,18 +8,18 @@ def analyse(ticker, time_slot):
     end_date = datetime.date.today()  # End date today.
     year_start_date = datetime.date(end_date.year, 1, 1)  # Start date at the beginning of the current year.
 
-    time_slots_mapping = {"1D": 1, "1W": 7, "1M": 30, "YTD": (end_date - year_start_date).days, "1Y": 365, "3Y": 3 * 365, "5Y": 5 * 365, "10Y": 10 * 365}
+    time_slots_mapping = {"1d": 1, "1wk": 7, "1mo": 30, "ytd": (end_date - year_start_date).days, "1y": 365, "3y": 3 * 365, "5y": 5 * 365, "10y": 10 * 365}
 
-    if time_slot == "1D":
+    if time_slot == "1d":
         start_date = end_date - datetime.timedelta(days=1)
         data = yf.download(ticker, start=start_date, end=end_date, interval='30m')
         thirty_min_return = data["Close"].pct_change().dropna()  # Calculates the daily returns.
-
+        
         x_values = thirty_min_return.index
         y_values = thirty_min_return.values
 
         print(list(x_values))
-        print(y_values)
+        print(list(y_values))
         
 
     else:
@@ -38,7 +38,7 @@ def analyse(ticker, time_slot):
         # print(y_values)
 
         print(list(x_values))
-        print(y_values)
+        print(list(y_values))
 
 if __name__ == "__main__":
     # Check if the correct number of command-line arguments is provided
@@ -53,10 +53,10 @@ if __name__ == "__main__":
     time_slot = sys.argv[2]
     # osv...
 
-    available_time_slot = "1D, 1W, 1M, YTD, 1Y, 3Y, 5Y, 10Y".split(", ")
+    available_time_slot = "1d, 1wk, 1mo, ytd, 1y, 3y, 5y, 10y".split(", ")
 
     if time_slot not in available_time_slot:
-        raise Exception("Ikke støttet tidsvindu. Please choose from: 1D, 1W, 1M, YTD, 1Y, 3Y, 5Y, 10Y")
+        raise Exception("Ikke støttet tidsvindu. Please choose from: 1d, 1wk, 1mo, ytd, 1y, 3y, 5y, 10y")
     
     #Kjør koden
     analyse(ticker, time_slot)
