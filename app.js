@@ -19,12 +19,13 @@ const { pasrePythonGraph, makeTicker } = require('./modules/analyse');
 const loginHTML = require('./modules/loginhtml');
 const updateFunds = require('./modules/FantacyFond');
 const adminHTML = readFileSync('./modules/adminHTML.html', 'utf8');
+const blogHTML = readFileSync('./modules/blogHTML.html', 'utf8');
 const norsketickers = require('./modules/norsketickers.json');
 
 const app = express();
 app.use(cors());
 app.use(cookieParser());
-app.use(bodyParser.urlencoded({extended: false})); // Endre til ture hvis bruk av cookie-parser
+app.use(bodyParser.urlencoded({extended: true})); // Endre til ture hvis bruk av cookie-parser
 app.use(bodyParser.json());
 app.use(session({secret: process.env.SECRET, saveUninitialized: false, resave: false}));
 app.use('/', express.static('./dist'));
@@ -114,6 +115,17 @@ app.get('/adminpage', (req, res) => {
     }
 
 });
+
+app.get('/newBlogpost', (req, res) => {
+    if(!req.session.admin_user){
+        res.redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley');
+        return;
+    }
+    else if (req.session.admin_user.username === process.env.ADMIN_UNAME && req.session.admin_user.key === process.env.ADMIN_KEY){
+        res.send(blogHTML);
+        return;
+    }
+})
 
 app.get('/getPortefolje', async (req, res) => {
     try {
