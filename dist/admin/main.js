@@ -9,7 +9,7 @@ const [ appDiv, avkastH1 ] = $("app avkast");
 const getPortefolje = async () => {
     const get = await fetch('/getPortefolje');
     const res = await get.json();
-    avkastH1.innerHTML += `${res.FondetsVerdi}kr (${((res.FondetsVerdi/4000 -1)*100).toFixed(2)}%)`
+    avkastH1.innerHTML += `${res.FondetsVerdi}kr (${((res.FondetsVerdi/13251 -1)*100).toFixed(2)}%)`
     const parsed = [];
     res.portefoljeData.forEach(e => {
         parsed.push({
