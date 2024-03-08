@@ -269,7 +269,35 @@ app.post('/KontaktFintechEnigma', async (req, res) => {
         console.log(error);
         res.send({status: "Det oppsto en feil, vennligst oppdater siden og prøv på nytt."});
     }
-})
+});
+
+// Kontakt fra Enigma sin side:
+app.post('/EnigmaKontakt', async (req, res) => {
+    const { tittel, melding } = req.body;
+    try{
+        const msg = {
+            to: 'enigma.forening@gmail.com', // Change to your recipient
+            from: 'fintechenigma@gmail.com', // Change to your verified sender
+            subject: `Ny anonym melding | ${tittel}`,
+            html: `
+                <strong>${tittel}</strong>
+                <p>${melding}</p>
+                <br>
+                <p>Sendt fra Anonym student</p>
+            `,
+          }
+          sgMail.send(msg)
+          .then(() => console.log("Mail sendt to fintech enigma"))
+          .catch(err => {
+            const error = new ErrorEvent(err);
+            throw error;
+          });
+    }
+    catch(error){
+        console.log(error);
+        res.send({status: "Det oppsto en feil, vennligst oppdater siden og prøv på nytt."});
+    }
+});
 
 app.get('/getNordnetFunds', async (req, res) => {
     try{
