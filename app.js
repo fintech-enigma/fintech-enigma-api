@@ -292,6 +292,7 @@ app.post('/EnigmaKontakt', async (req, res) => {
             const error = new ErrorEvent(err);
             throw error;
           });
+          res.send({status: "OK"});
     }
     catch(error){
         console.log(error);
