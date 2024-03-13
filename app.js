@@ -287,7 +287,7 @@ app.post('/EnigmaKontakt', async (req, res) => {
             `,
           }
           sgMail.send(msg)
-          .then(() => console.log("Mail sendt to fintech enigma"))
+          .then(() => console.log("Anonym melding sendt!"))
           .catch(err => {
             const error = new ErrorEvent(err);
             throw error;
