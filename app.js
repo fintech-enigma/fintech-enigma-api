@@ -46,7 +46,7 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // Henter data fra DN fantacy fond hvert 30-ene minutt
 const rule = new scedule.RecurrenceRule();
-rule.minute = new scedule.Range(0,59, 15);
+rule.minute = new scedule.Range(0,59, 30);
 const job = scedule.scheduleJob(rule, async () => {
     try{
         // Siden server kan være plassert i annen tidssone bruker vi dato API.
