@@ -17,7 +17,31 @@ const UpdatePortefolje = async (portefoljeData) => {
         }
         return stock;
     }));
-    return nyPortefoljeData;
+    
+    var fondsokning = 0;
+    var investert = 0;
+
+    for(let i=0; i<await nyPortefoljeData.length; i++){
+        const stock = await nyPortefoljeData[i];
+        const weight = stock.andel / process.env.INNSKUDD;
+        nyPortefoljeData[i].andel = weight;
+        investert += weight
+        // portefoljeData[i].andel = portefoljeData[i].andel*(stock.PriceToday / stock.kostpris);
+        const ret = stock.PriceToday / stock.kostpris - 1;
+        fondsokning += weight*ret;
+    }
+    
+    await nyPortefoljeData.push({
+        "aksje": "Cash",
+        "tickerName": "Cash",
+        "kostpris": 1,
+        "andel": 1 - investert,
+        "antall_aksjer": 1,
+        "dato": new Date(),
+        "PriceToday": 1
+    })
+
+    return {nyPortefoljeData, fondsokning};
 };
 
 module.exports = UpdatePortefolje;

@@ -133,9 +133,9 @@ app.get('/getPortefolje', async (req, res) => {
     try {
         const portefoljeData = (await client.db('Cluster0').collection('Portefolje').find({}).toArray());
         // const FondetsVerdi = Number(process.env.INNSKUDD)*((await getNordnetFond()).pop().value)/100;
-        const nyPortefoljeData = await UpdatePortefolje(portefoljeData);
+        const {nyPortefoljeData, fondsokning} = await UpdatePortefolje(portefoljeData);
 
-        res.send({status: "OK", portefoljeData: nyPortefoljeData}) // , FondetsVerdi})
+        res.send({status: "OK", portefoljeData: nyPortefoljeData, fondsokning}) // , FondetsVerdi})
     }
     catch(err){
         res.send({status: "Klarte ikke hente dataset, vennligst oppdater siden."});
