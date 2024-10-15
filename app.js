@@ -12,9 +12,12 @@ dotenv.config({path: './.env'});
 const scedule = require('node-schedule');
 const bcrypt = require('bcrypt');
 const fetch = require('node-fetch');
+const crypto = require('crypto');
+const { publicEncrypt, privateDecrypt } = crypto;
 const ExecRunner = require('./modules/ExecRunner');
 const UpdatePortefolje = require('./modules/StockPrices');
 const { pasrePythonGraph, makeTicker } = require('./modules/analyse');
+const { READ_AES_KEY, AES_256_CBC_Encrypt, AES_256_CBC_Decrypt } = require('./modules/crypto');
 
 const loginHTML = require('./modules/loginhtml');
 const updateFunds = require('./modules/FantacyFond');
@@ -44,6 +47,16 @@ client.connect()
 // Koble til SendGrid Epost API.
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
+// Starte Alpaca Trading
+ExecRunner('EMA-SMA')
+.then(res => console.log(`Trading Running`))
+.catch(err => console.log(err))
+.finally(() => console.log(`EMA-SMA Trading Running...`))
+
+
+// Lese av AES nøkler.
+const { AES_KEY, AES_IV } = READ_AES_KEY();
+
 // Henter data fra DN fantacy fond hvert 30-ene minutt
 const rule = new scedule.RecurrenceRule();
 rule.minute = new scedule.Range(0,59, 30);
@@ -68,6 +81,27 @@ const job = scedule.scheduleJob(rule, async () => {
         console.log(err);
     }
 });
+
+const avkastRule = new scedule.RecurrenceRule();
+avkastRule.minute = new scedule.Range(0,59, 59);
+const oppdaterAvkastning = scedule.scheduleJob(avkastRule, async () => {
+    try{
+        const getDate = await fetch("https://www.timeapi.io/api/Time/current/zone?timeZone=Europe/Oslo");
+        const dateData = await getDate.json();
+        const DATE = new Date(dateData.dateTime);
+        const HOUR = DATE.getHours();
+        const DAY = DATE.getDay();
+        
+        if(HOUR === 23 && DAY >= 1 && DAY <= 5){
+            const encryptedAvkast = await client.db('Cluster0').collection('Avkastning').find({}).toArray();
+            const decryptedAvkast = JSON.stringify(await AES_256_CBC_Decrypt(encryptedAvkast[0].avkastning, AES_KEY, AES_IV));
+            
+        }
+    }
+    catch(err){
+        console.log(err)
+    }
+})
 
 
 
@@ -304,13 +338,13 @@ app.post('/EnigmaKontakt', async (req, res) => {
 
 app.get('/getNordnetFunds', async (req, res) => {
     try{
-        const data = await getNordnetFond();
-        const labels = data.map(e => e.date);
-        const dataset = data.map(e => +(((e.value - 100)/100) * 100).toFixed(2));
-        res.send({status: "OK", data, labels, dataset});
+        const encrypted_avkast = await client.db('Cluster0').collection('Avkastning').find({}).toArray()
+        const avkast = JSON.parse(await AES_256_CBC_Decrypt(encrypted_avkast[0].avkastning, AES_KEY, AES_IV));
+        res.send({status: "OK", avkast});
     }
     catch(error){
-        res.send({status: "Kunne ikke hente data, vennligst oppdater siden."})
+        res.send({status: "Kunne ikke hente data, vennligst oppdater siden."});
+        console.log(error);
     }
 });
 
