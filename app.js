@@ -12,12 +12,12 @@ dotenv.config({path: './.env'});
 const scedule = require('node-schedule');
 const bcrypt = require('bcrypt');
 const fetch = require('node-fetch');
-const crypto = require('crypto');
-const { publicEncrypt, privateDecrypt } = crypto;
+// const crypto = require('crypto');
+// const { publicEncrypt, privateDecrypt } = crypto;
 const ExecRunner = require('./modules/ExecRunner');
 const UpdatePortefolje = require('./modules/StockPrices');
 const { pasrePythonGraph, makeTicker } = require('./modules/analyse');
-const { READ_AES_KEY, AES_256_CBC_Encrypt, AES_256_CBC_Decrypt } = require('./modules/crypto');
+// const { READ_AES_KEY, AES_256_CBC_Encrypt, AES_256_CBC_Decrypt } = require('./modules/crypto');
 
 const loginHTML = require('./modules/loginhtml');
 const updateFunds = require('./modules/FantacyFond');
@@ -55,7 +55,7 @@ ExecRunner('EMA-SMA')
 
 
 // Lese av AES nøkler.
-const { AES_KEY, AES_IV } = READ_AES_KEY();
+// const { AES_KEY, AES_IV } = READ_AES_KEY();
 
 // Henter data fra DN fantacy fond hvert 30-ene minutt
 const rule = new scedule.RecurrenceRule();
