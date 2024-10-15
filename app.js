@@ -82,26 +82,26 @@ const job = scedule.scheduleJob(rule, async () => {
     }
 });
 
-const avkastRule = new scedule.RecurrenceRule();
-avkastRule.minute = new scedule.Range(0,59, 59);
-const oppdaterAvkastning = scedule.scheduleJob(avkastRule, async () => {
-    try{
-        const getDate = await fetch("https://www.timeapi.io/api/Time/current/zone?timeZone=Europe/Oslo");
-        const dateData = await getDate.json();
-        const DATE = new Date(dateData.dateTime);
-        const HOUR = DATE.getHours();
-        const DAY = DATE.getDay();
+// const avkastRule = new scedule.RecurrenceRule();
+// avkastRule.minute = new scedule.Range(0,59, 59);
+// const oppdaterAvkastning = scedule.scheduleJob(avkastRule, async () => {
+//     try{
+//         const getDate = await fetch("https://www.timeapi.io/api/Time/current/zone?timeZone=Europe/Oslo");
+//         const dateData = await getDate.json();
+//         const DATE = new Date(dateData.dateTime);
+//         const HOUR = DATE.getHours();
+//         const DAY = DATE.getDay();
         
-        if(HOUR === 23 && DAY >= 1 && DAY <= 5){
-            const encryptedAvkast = await client.db('Cluster0').collection('Avkastning').find({}).toArray();
-            const decryptedAvkast = JSON.stringify(await AES_256_CBC_Decrypt(encryptedAvkast[0].avkastning, AES_KEY, AES_IV));
+//         if(HOUR === 23 && DAY >= 1 && DAY <= 5){
+//             const encryptedAvkast = await client.db('Cluster0').collection('Avkastning').find({}).toArray();
+//             const decryptedAvkast = JSON.stringify(await AES_256_CBC_Decrypt(encryptedAvkast[0].avkastning, AES_KEY, AES_IV));
             
-        }
-    }
-    catch(err){
-        console.log(err)
-    }
-})
+//         }
+//     }
+//     catch(err){
+//         console.log(err)
+//     }
+// })
 
 
 
