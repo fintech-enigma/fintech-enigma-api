@@ -2,3 +2,8 @@ yfinance
 numpy
 pandas
 matplotlib
+pymongo
+pandas_ta
+alpaca_trade_api
+python-dotenv
+pytz
