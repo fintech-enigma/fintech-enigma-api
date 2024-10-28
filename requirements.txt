@@ -1,3 +1,4 @@
+python==3.10.11
 yfinance==0.2.44
 numpy==1.26.4
 matplotlib==3.6.0
