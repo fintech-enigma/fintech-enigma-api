@@ -2,6 +2,4 @@ services:
   - type: web
     name: fintech-enigma-api
     env: python
-    runtime: python3.10.11  # Specify Python 3.10.11 here
-    buildCommand: "poetry install"
-    startCommand: "poetry run python main.py"  # Adjust to your app's main file
+    runtime: python3.10
