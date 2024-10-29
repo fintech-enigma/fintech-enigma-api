@@ -1,9 +1,5 @@
 yfinance==0.2.44
 numpy==1.26.4
 matplotlib==3.6.0
-pandas_ta==0.3.14b0
-alpaca_trade_api==2.3.0
 pandas==2.2.3
 python-dotenv==0.21.0
-pytz==2023.3.post1
-pymongo==4.10.1
