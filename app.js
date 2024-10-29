@@ -12,12 +12,9 @@ dotenv.config({path: './.env'});
 const scedule = require('node-schedule');
 const bcrypt = require('bcrypt');
 const fetch = require('node-fetch');
-// const crypto = require('crypto');
-// const { publicEncrypt, privateDecrypt } = crypto;
 const ExecRunner = require('./modules/ExecRunner');
 const UpdatePortefolje = require('./modules/StockPrices');
 const { pasrePythonGraph, makeTicker } = require('./modules/analyse');
-// const { READ_AES_KEY, AES_256_CBC_Encrypt, AES_256_CBC_Decrypt } = require('./modules/crypto');
 
 const loginHTML = require('./modules/loginhtml');
 const updateFunds = require('./modules/FantacyFond');
@@ -47,40 +44,30 @@ client.connect()
 // Koble til SendGrid Epost API.
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-// Starte Alpaca Trading
-ExecRunner('EMA-SMA')
-.then(res => console.log(`Trading Running`))
-.catch(err => console.log(err))
-.finally(() => console.log(`EMA-SMA Trading Running...`))
-
-
-// Lese av AES nøkler.
-// const { AES_KEY, AES_IV } = READ_AES_KEY();
-
 // Henter data fra DN fantacy fond hvert 30-ene minutt
-const rule = new scedule.RecurrenceRule();
-rule.minute = new scedule.Range(0,59, 30);
-const job = scedule.scheduleJob(rule, async () => {
-    try{
-        // Siden server kan være plassert i annen tidssone bruker vi dato API.
-        const getDate = await fetch("https://www.timeapi.io/api/Time/current/zone?timeZone=Europe/Oslo");
-        const dateData = await getDate.json();
-        const DATE = new Date(dateData.dateTime);
-        const HOUR = DATE.getHours();
-        const DAY = DATE.getDay();
-        console.log(DAY);
-        console.log(DATE);
-        // Sjekker at det er en ukedag (man-fre) mellom kl. 09:00 og 17:00. 
-        if(HOUR >= 9 && HOUR <= 16 && DAY >= 1 && DAY <= 5){
-            // I produksjon tas med!
-            await updateFunds(client, process.env.MEMBERS.split(","));
-            console.log("Getting funds...");
-        }
-    }
-    catch(err){
-        console.log(err);
-    }
-});
+// const rule = new scedule.RecurrenceRule();
+// rule.minute = new scedule.Range(0,59, 15);
+// const job = scedule.scheduleJob(rule, async () => {
+//     try{
+//         // Siden server kan være plassert i annen tidssone bruker vi dato API.
+//         const getDate = await fetch("https://www.timeapi.io/api/Time/current/zone?timeZone=Europe/Oslo");
+//         const dateData = await getDate.json();
+//         const DATE = new Date(dateData.dateTime);
+//         const HOUR = DATE.getHours();
+//         const DAY = DATE.getDay();
+//         console.log(DAY);
+//         console.log(DATE);
+//         // Sjekker at det er en ukedag (man-fre) mellom kl. 09:00 og 17:00. 
+//         if(HOUR >= 9 && HOUR <= 16 && DAY >= 1 && DAY <= 5){
+//             // I produksjon tas med!
+//             await updateFunds(client, process.env.MEMBERS.split(","));
+//             console.log("Getting funds...");
+//         }
+//     }
+//     catch(err){
+//         console.log(err);
+//     }
+// });
 
 // const avkastRule = new scedule.RecurrenceRule();
 // avkastRule.minute = new scedule.Range(0,59, 59);
@@ -102,8 +89,6 @@ const job = scedule.scheduleJob(rule, async () => {
 //         console.log(err)
 //     }
 // })
-
-
 
 app.get('/signin/key/:key', (req, res) => {
     const key = req.params.key;
@@ -336,17 +321,30 @@ app.post('/EnigmaKontakt', async (req, res) => {
     }
 });
 
-app.get('/getNordnetFunds', async (req, res) => {
+
+app.get('/getEMASMAResults', async (req, res) => {
     try{
-        const encrypted_avkast = await client.db('Cluster0').collection('Avkastning').find({}).toArray()
-        const avkast = JSON.parse(await AES_256_CBC_Decrypt(encrypted_avkast[0].avkastning, AES_KEY, AES_IV));
-        res.send({status: "OK", avkast});
+        const EMASMAPrices = (await client.db('Cluster0').collection('EMA-SMA').find({}).toArray());
+        const EMASMAAvkast = [{
+            time: EMASMAPrices[0].time,
+            avkast: 0
+        }];
+        for(let i=1; i<EMASMAPrices.length; i++){
+            currPrice = EMASMAPrices[i];
+            prevPrice = EMASMAPrices[i-1];
+            EMASMAAvkast.push({
+                time: currPrice.time,
+                avkast: ((currPrice.price - prevPrice.price) / prevPrice.price)*100
+            });
+        }
+        res.send({status: "OK", EMASMAAvkast});
     }
-    catch(error){
-        res.send({status: "Kunne ikke hente data, vennligst oppdater siden."});
-        console.log(error);
+    catch(err){
+        console.log(err);
+        res.send({status: "Det oppsto en feil, vennligst oppdater siden og prøv på nytt."})
     }
-});
+
+})
 
 app.post('/analyse', async (req, res) => {
     const { ticker, time_slot, index } = req.body;

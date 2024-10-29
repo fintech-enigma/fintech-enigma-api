@@ -1,5 +1,0 @@
-services:
-  - type: web
-    name: fintech-enigma-api
-    env: python
-    runtime: python3.10
