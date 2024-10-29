@@ -90,8 +90,6 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 //     }
 // })
 
-
-
 app.get('/signin/key/:key', (req, res) => {
     const key = req.params.key;
     if(key === process.env.ADMIN_KEY){
