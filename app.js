@@ -343,8 +343,30 @@ app.get('/getEMASMAResults', async (req, res) => {
         console.log(err);
         res.send({status: "Det oppsto en feil, vennligst oppdater siden og prøv på nytt."})
     }
+});
 
-})
+app.get('/getStochasticResults', async (req, res) => {
+    try{
+        const EMASMAPrices = (await client.db('Cluster0').collection('Stochastic Trader').find({}).toArray());
+        const EMASMAAvkast = [{
+            time: EMASMAPrices[0].time,
+            avkast: 0
+        }];
+        for(let i=1; i<EMASMAPrices.length; i++){
+            currPrice = EMASMAPrices[i];
+            prevPrice = EMASMAPrices[i-1];
+            EMASMAAvkast.push({
+                time: currPrice.time,
+                avkast: ((currPrice.price - prevPrice.price) / prevPrice.price)*100
+            });
+        }
+        res.send({status: "OK", EMASMAAvkast});
+    }
+    catch(err){
+        console.log(err);
+        res.send({status: "Det oppsto en feil, vennligst oppdater siden og prøv på nytt."})
+    }
+});
 
 app.post('/analyse', async (req, res) => {
     const { ticker, time_slot, index } = req.body;
