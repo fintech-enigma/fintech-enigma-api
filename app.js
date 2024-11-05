@@ -325,19 +325,19 @@ app.post('/EnigmaKontakt', async (req, res) => {
 app.get('/getEMASMAResults', async (req, res) => {
     try{
         const EMASMAPrices = (await client.db('Cluster0').collection('EMA-SMA').find({}).toArray());
-        const EMASMAAvkast = [{
+        const Avkast = [{
             time: EMASMAPrices[0].time,
             avkast: 0
         }];
+        const startPrice = EMASMAPrices[0]
         for(let i=1; i<EMASMAPrices.length; i++){
-            currPrice = EMASMAPrices[i];
-            prevPrice = EMASMAPrices[i-1];
-            EMASMAAvkast.push({
+            const currPrice = EMASMAPrices[i];
+            Avkast.push({
                 time: currPrice.time,
-                avkast: ((currPrice.price - prevPrice.price) / prevPrice.price)*100
+                avkast: ((currPrice.price - startPrice.price) / startPrice.price)*100
             });
         }
-        res.send({status: "OK", EMASMAAvkast});
+        res.send({status: "OK", Avkast});
     }
     catch(err){
         console.log(err);
@@ -347,20 +347,20 @@ app.get('/getEMASMAResults', async (req, res) => {
 
 app.get('/getStochasticResults', async (req, res) => {
     try{
-        const EMASMAPrices = (await client.db('Cluster0').collection('Stochastic Trader').find({}).toArray());
-        const EMASMAAvkast = [{
-            time: EMASMAPrices[0].time,
+        const STPrices = (await client.db('Cluster0').collection('Stochastic Trader').find({}).toArray());
+        const Avkast = [{
+            time: STPrices[0].time,
             avkast: 0
         }];
-        for(let i=1; i<EMASMAPrices.length; i++){
-            currPrice = EMASMAPrices[i];
-            prevPrice = EMASMAPrices[i-1];
-            EMASMAAvkast.push({
+        const startPrice = STPrices[0]
+        for(let i=1; i<STPrices.length; i++){
+            const currPrice = STPrices[i];
+            Avkast.push({
                 time: currPrice.time,
-                avkast: ((currPrice.price - prevPrice.price) / prevPrice.price)*100
+                avkast: ((currPrice.price - startPrice.price) / startPrice.price)*100
             });
         }
-        res.send({status: "OK", EMASMAAvkast});
+        res.send({status: "OK", Avkast});
     }
     catch(err){
         console.log(err);
