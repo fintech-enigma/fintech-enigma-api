@@ -368,6 +368,29 @@ app.get('/getStochasticResults', async (req, res) => {
     }
 });
 
+app.get('/getAIResults', async (req, res) => {
+    try{
+        const AIPrices = (await client.db('Cluster0').collection('AI_Classifier').find({}).toArray());
+        const Avkast = [{
+            time: AIPrices[0].time,
+            avkast: 0
+        }];
+        const startPrice = AIPrices[0]
+        for(let i=1; i<AIPrices.length; i++){
+            const currPrice = AIPrices[i];
+            Avkast.push({
+                time: currPrice.time,
+                avkast: ((currPrice.price - startPrice.price) / startPrice.price)*100
+            });
+        }
+        res.send({status: "OK", Avkast});
+    }
+    catch(err){
+        console.log(err);
+        res.send({status: "Det oppsto en feil, vennligst oppdater siden og prøv på nytt."})
+    }
+});
+
 app.post('/analyse', async (req, res) => {
     const { ticker, time_slot, index } = req.body;
 
