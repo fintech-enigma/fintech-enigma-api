@@ -44,6 +44,11 @@ client.connect()
 // Koble til SendGrid Epost API.
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
+GOOGLE_SHEETS = process.env.GOOGLE_SHEETS;
+SITE1 = process.env.SITE1;
+SITE2 = process.env.SITE2;
+SITE3 = process.env.SITE3;
+
 // Henter data fra DN fantacy fond hvert 30-ene minutt
 // const rule = new scedule.RecurrenceRule();
 // rule.minute = new scedule.Range(0,59, 15);
@@ -454,4 +459,23 @@ app.post('/analyse', async (req, res) => {
 
 
     res.send({status: "OK", data});
+});
+
+app.get('/getFundAPISheets', async (req, res) => {
+    try{
+        const site = req.headers.origin;
+        if(site === SITE1 || site === SITE2 || site === SITE3 || true){
+            const get = await fetch(GOOGLE_SHEETS);
+            const data = await get.json();
+            res.send({status: "OK", data: data});
+            return
+        }
+        res.send({status: "Ikke tilgang brur"});
+        return;
+    }
+    catch(error){
+        res.send({status: "Noe gikk galt, vennligst oppdater siden. Ta kontakt om feilen vedvarer."});
+        console.log(error);
+        return;
+    }
 });
