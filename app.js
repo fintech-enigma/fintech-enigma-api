@@ -9,6 +9,12 @@ const dotenv = require('dotenv');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const sgMail = require('@sendgrid/mail');
 dotenv.config({path: './.env'});
+
+// Cache object for API responses
+const cache = {
+    fundAPISheets: null,
+    fundAPISheetsTTL: null
+};
 const scedule = require('node-schedule');
 const bcrypt = require('bcrypt');
 const fetch = require('node-fetch');
@@ -465,8 +471,21 @@ app.get('/getFundAPISheets', async (req, res) => {
     try{
         const site = req.headers.origin;
         if(site === SITE1 || site === SITE2 || site === SITE3 || true){
+            // Check if cache is valid (6 hours = 21600000 ms)
+            if(cache.fundAPISheets && cache.fundAPISheetsTTL > Date.now()){
+                res.set('Cache-Control', 'public, max-age=21600');
+                res.send({status: "OK", data: cache.fundAPISheets, cached: true});
+                return;
+            }
+            
             const get = await fetch(GOOGLE_SHEETS);
             const data = await get.json();
+            
+            // Store in cache for 6 hours
+            cache.fundAPISheets = data;
+            cache.fundAPISheetsTTL = Date.now() + (6 * 60 * 60 * 1000);
+            
+            res.set('Cache-Control', 'public, max-age=21600');
             res.send({status: "OK", data: data});
             return
         }
@@ -479,3 +498,7 @@ app.get('/getFundAPISheets', async (req, res) => {
         return;
     }
 });
+
+app.get('/hei', (req, res) =>{
+    res.send("Hello!")
+})
